@@ -48,7 +48,7 @@ async def batch(req: Request):
         try:
             async with SEMAPHORE:
                 resp = await client.chat.completions.create(
-                    model="gpt-4o-mini",          # rapide et dispo pour tous
+                    model="gpt-5",          # rapide et dispo pour tous
                     messages=[{"role": "user", "content": prompt}],
                     max_tokens=250,
                     temperature=0.2,
