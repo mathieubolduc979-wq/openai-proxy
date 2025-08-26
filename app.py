@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
+from pydantic import BaseModel
 import asyncio
 from openai import AsyncOpenAI
 import os
@@ -6,18 +7,19 @@ import os
 app = FastAPI()
 client = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
-@app.post("/batch")
-async def batch(request: Request):
-    data = await request.json()
-    prompts = data["prompts"]
+# Définir un schéma Pydantic pour le body
+class BatchRequest(BaseModel):
+    prompts: list[str]
 
-    async def run_query(prompt):
+@app.post("/batch")
+async def batch(request: BatchRequest):
+    async def run_query(prompt: str):
         resp = await client.chat.completions.create(
-            model="gpt-4.1",  # change en "gpt-5" si dispo
+            model="gpt-4o-mini",  # modèle stable
             messages=[{"role": "user", "content": prompt}],
             max_tokens=250,
         )
         return resp.choices[0].message.content
 
-    results = await asyncio.gather(*(run_query(p) for p in prompts))
+    results = await asyncio.gather(*(run_query(p) for p in request.prompts))
     return {"responses": results}
